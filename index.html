@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b3c5d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0b3c5d">
+
+<title>Défi des Villes du Finistère</title>
+
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: "Segoe UI", Roboto, Arial, sans-serif;
+  background: #0b3c5d;
+  color: #fff;
+}
+
+#map {
+  height: 100%;
+}
+
+#top-bar {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.45);
+  padding: 14px 20px;
+  border-radius: 14px;
+  display: flex;
+  gap: 24px;
+  font-size: 18px;
+  z-index: 10;
+}
+
+#ville {
+  position: absolute;
+  top: 72px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 30px;
+  font-weight: 700;
+  text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  z-index: 10;
+}
+
+#resultat {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.45);
+  padding: 12px 18px;
+  border-radius: 12px;
+  min-width: 280px;
+  text-align: center;
+  z-index: 10;
+}
+
+#rejouer {
+  position: absolute;
+  bottom: 88px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 28px;
+  font-size: 18px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  display: none;
+  background: #f9d342;
+  color: #000;
+  z-index: 10;
+}
+
+#rejouer:hover {
+  background: #ffe37a;
+}
+</style>
+</head>
+
+<body>
+
+<div id="top-bar">
+  <div id="timer">⏱ 120 s</div>
+  <div id="score">⭐ 0</div>
+</div>
+
+<div id="ville">Ville à placer : —</div>
+
+<div id="map"></div>
+
+<div id="resultat">Clique sur la carte</div>
+<button id="rejouer">🔄 Rejouer</button>
+
+<!-- ⚠️ COLLE TA CLÉ API ICI, CHEZ TOI UNIQUEMENT -->
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBe3xeSkjyNG29EwBrWH-dfUkE16v8_THo&callback=initMap"
+  async defer>
+</script>
+
+<script src="script.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
+}
+</script>
+
+</body>
+</html>
