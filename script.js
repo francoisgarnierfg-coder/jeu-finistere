@@ -1,5 +1,15 @@
 // =======================================================
-// COMMUNES DU FINISTÈRE (≈110)
+// LIMITES GÉOGRAPHIQUES DU FINISTÈRE (ANTI-ZOOM iOS)
+// =======================================================
+const FINISTERE_BOUNDS = {
+  north: 48.75,
+  south: 47.65,
+  west: -5.15,
+  east: -3.30
+};
+
+// =======================================================
+// LISTE DES COMMUNES DU FINISTÈRE (~110)
 // =======================================================
 const villes = [
   ["Brest",48.3904,-4.4861],["Quimper",47.9960,-4.1020],["Morlaix",48.5770,-3.8280],
@@ -13,18 +23,29 @@ const villes = [
   ["Plouescat",48.6580,-4.1780],["Plouzané",48.3830,-4.6190],
   ["Saint-Renan",48.4320,-4.6210],["Le Conquet",48.3600,-4.7730],
   ["Crozon",48.2460,-4.4890],["Camaret-sur-Mer",48.2760,-4.5950],
-  ["Telgruc-sur-Mer",48.2620,-4.3660],["Argol",48.2730,-4.2830],
-  ["Pleyben",48.2000,-4.0830],["Huelgoat",48.3630,-3.7470],
-  ["Fouesnant",47.8950,-4.0120],["Bénodet",47.8760,-4.1050],
-  ["Trégunc",47.8500,-3.8530],["Névez",47.8190,-3.7920],
-  ["Moëlan-sur-Mer",47.8130,-3.6290],["Audierne",48.0160,-4.5380],
-  ["Beuzec-Cap-Sizun",48.0300,-4.5450],["Plouhinec",48.0160,-4.4860],
-  ["Landivisiau",48.5090,-4.0690],["Sizun",48.4000,-4.0500],
-  ["Daoulas",48.3610,-4.2590],["Le Faou",48.2950,-4.1820]
+  ["Telgruc-sur-Mer",48.2620,-4.3660],["Audierne",48.0160,-4.5400],
+  ["Plogoff",48.0340,-4.6730],["Pont-Croix",48.0400,-4.4900],
+  ["Plouhinec",47.9870,-4.5510],["Plozévet",47.9890,-4.4270],
+  ["Guilvinec",47.7980,-4.2840],["Penmarc’h",47.8120,-4.3380],
+  ["Loctudy",47.8300,-4.1750],["Bénodet",47.8750,-4.1050],
+  ["Fouesnant",47.8930,-3.9780],["Trégunc",47.8560,-3.8520],
+  ["Rosporden",47.9600,-3.8340],["Scaër",48.0280,-3.7020],
+  ["Bannalec",47.9300,-3.7000],["Moëlan-sur-Mer",47.8140,-3.6280],
+  ["Clohars-Carnoët",47.7880,-3.5830],["Ergué-Gabéric",47.9980,-4.0190],
+  ["Pluguffan",47.9720,-4.1720],["Plomelin",47.9330,-4.1510],
+  ["Landrévarzec",48.0910,-4.0570],["Pleyben",48.2160,-4.0910],
+  ["Brasparts",48.3000,-3.9620],["Huelgoat",48.3620,-3.7470],
+  ["Commana",48.4150,-3.9750],["Sizun",48.4020,-4.0740],
+  ["Daoulas",48.3610,-4.2570],["Le Faou",48.2950,-4.1800],
+  ["Lanvéoc",48.2810,-4.4660],["Plomodiern",48.1880,-4.2540],
+  ["Saint-Thégonnec",48.5230,-3.9460],["Pleyber-Christ",48.5040,-3.8740],
+  ["Plouigneau",48.5640,-3.7080],["Carantec",48.6680,-3.9120],
+  ["Plougasnou",48.6940,-3.7900],["Lanmeur",48.6430,-3.7160],
+  ["Cléder",48.6650,-4.1010],["Plouzévédé",48.6040,-4.1280]
 ];
 
 // =======================================================
-// PARAMÈTRES
+// PARAMÈTRES DE JEU
 // =======================================================
 const DUREE_JEU = 60;
 const SCORE_MAX = 5000;
@@ -34,80 +55,77 @@ let map, indexVille = 0, score = 0, temps = DUREE_JEU;
 let debutVille = Date.now();
 let markerJoueur = null;
 let markerCorrection = null;
-let popupActif = null;
+let popup = null;
 let jeuTermine = false;
 
 // DOM
 const timerEl = document.getElementById("timer");
 const scoreEl = document.getElementById("score");
 const villeEl = document.getElementById("ville");
-const btnRejouer = document.getElementById("rejouer");
+const finEl = document.getElementById("rejouer");
 
 // =======================================================
 // OUTILS
 // =======================================================
-function melanger(arr) {
-  for (let i = arr.length - 1; i > 0; i--) {
+function melanger(a) {
+  for (let i = a.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
+    [a[i], a[j]] = [a[j], a[i]];
   }
 }
 melanger(villes);
 
 // =======================================================
-// INIT MAP
+// INIT GOOGLE MAPS (CORRIGÉ iOS)
 // =======================================================
 window.initMap = function () {
   map = new google.maps.Map(document.getElementById("map"), {
-    center: { lat: 48.25, lng: -4.1 },
-    zoom: 9,
     disableDefaultUI: true,
-    draggable: false,
+    gestureHandling: "greedy",
+    scrollwheel: false,
+    disableDoubleClickZoom: true,
+    fullscreenControl: false,
     styles: [
       { featureType: "poi", stylers: [{ visibility: "off" }] },
       { featureType: "administrative", elementType: "labels", stylers: [{ visibility: "off" }] },
-      { featureType: "road", elementType: "labels", stylers: [{ visibility: "off" }] },
-      { featureType: "transit", stylers: [{ visibility: "off" }] }
+      { featureType: "road", elementType: "labels", stylers: [{ visibility: "off" }] }
     ]
   });
 
+  // 👉 CORRECTION CLÉ : ajuste automatiquement la vue
+  map.fitBounds(FINISTERE_BOUNDS);
+
+  // Sécurité : évite un zoom excessif après fitBounds (iOS)
+  google.maps.event.addListenerOnce(map, "bounds_changed", () => {
+    if (map.getZoom() > 9) map.setZoom(9);
+  });
+
   map.addListener("click", clicCarte);
-  afficherVille(true);
+  afficherVille();
 };
 
 // =======================================================
-// TIMER
+// TIMER GLOBAL
 // =======================================================
 setInterval(() => {
   if (jeuTermine) return;
   temps--;
-  timerEl.textContent = "⏱ " + temps + " s";
+  timerEl.textContent = `⏱ ${temps} s`;
   if (temps <= 0) terminerJeu();
 }, 1000);
 
 // =======================================================
-// AFFICHAGE VILLE
+// AFFICHAGE DE LA VILLE
 // =======================================================
-function afficherVille(initial=false) {
-  if (indexVille >= villes.length) indexVille = 0;
+function afficherVille() {
   debutVille = Date.now();
-
-  if (!initial) {
-    villeEl.style.opacity = "0";
-    villeEl.style.transform = "translate(-50%, 14px)";
-  }
-
+  villeEl.style.opacity = 0;
   villeEl.textContent = `${villes[indexVille][0]} ?`;
-
-  requestAnimationFrame(() => {
-    villeEl.style.transition = "all .35s cubic-bezier(.2,.9,.3,1)";
-    villeEl.style.opacity = "1";
-    villeEl.style.transform = "translate(-50%, 0)";
-  });
+  requestAnimationFrame(() => villeEl.style.opacity = 1);
 }
 
 // =======================================================
-// CLIC CARTE
+// GESTION DU CLIC
 // =======================================================
 function clicCarte(e) {
   if (jeuTermine) return;
@@ -116,120 +134,61 @@ function clicCarte(e) {
   const latC = e.latLng.lat();
   const lngC = e.latLng.lng();
 
-  const distanceM = distanceMetres(latC, lngC, latV, lngV);
-  const distanceKm = (distanceM / 1000).toFixed(1);
+  const dist = distanceMetres(latC, lngC, latV, lngV);
   const tempsRep = (Date.now() - debutVille) / 1000;
 
-  // === MARQUEUR JOUEUR ===
-  if (markerJoueur) markerJoueur.setMap(null);
-  markerJoueur = new google.maps.Marker({
-    position: e.latLng,
-    map,
-    animation: google.maps.Animation.BOUNCE
-  });
-  setTimeout(() => markerJoueur.setAnimation(null), 400);
+  markerJoueur?.setMap(null);
+  markerJoueur = new google.maps.Marker({ position: e.latLng, map });
 
-  // === SCORE ===
-  const precision = Math.exp(-distanceM / 8000);
+  // Pondération : précision > vitesse
+  const precision = Math.exp(-dist / 8000);
   const vitesse = Math.max(0.3, 1 - tempsRep / 10);
   const gain = Math.round(SCORE_MAX * (0.75 * precision + 0.25 * vitesse));
-  animerScore(score, score + gain);
+
   score += gain;
+  scoreEl.textContent = `⭐ ${score}`;
 
-  // === POPUP DISTANCE ===
-  popupActif = afficherPopupDistance(distanceKm, distanceM);
+  afficherPopup((dist / 1000).toFixed(1), dist);
 
-  // === DRAPEAU CORRECTION ===
   setTimeout(() => {
-    if (markerCorrection) markerCorrection.setMap(null);
     markerCorrection = new google.maps.Marker({
       position: { lat: latV, lng: lngV },
       map,
       label: "🏴"
     });
-  }, 500);
+  }, 400);
 
-  // ===== FIN DU TOUR (NETTOYAGE TOTAL + TRANSITION) =====
   setTimeout(() => {
-
-    // suppression marqueur joueur
-    if (markerJoueur) {
-      markerJoueur.setMap(null);
-      markerJoueur = null;
-    }
-
-    // suppression drapeau correction
-    if (markerCorrection) {
-      markerCorrection.setMap(null);
-      markerCorrection = null;
-    }
-
-    // suppression popup distance
-    if (popupActif) {
-      popupActif.style.opacity = "0";
-      popupActif.style.transform = "translateX(-50%) scale(.95)";
-      setTimeout(() => popupActif.remove(), 300);
-      popupActif = null;
-    }
-
-    // ville suivante
-    indexVille++;
+    markerJoueur?.setMap(null);
+    markerCorrection?.setMap(null);
+    popup?.remove();
+    indexVille = (indexVille + 1) % villes.length;
     afficherVille();
-
   }, 1400);
 }
 
 // =======================================================
 // POPUP DISTANCE
 // =======================================================
-function afficherPopupDistance(km, metres) {
+function afficherPopup(km, m) {
   let couleur = "#2ecc71";
-  if (metres > 5000) couleur = "#f39c12";
-  if (metres > 15000) couleur = "#e74c3c";
+  if (m > 5000) couleur = "#f39c12";
+  if (m > 15000) couleur = "#e74c3c";
 
-  const popup = document.createElement("div");
-  popup.innerHTML = `
-    <div style="font-size:13px;opacity:.7">Distance</div>
-    <div style="font-size:30px;font-weight:800">${km} km</div>
-  `;
+  popup = document.createElement("div");
+  popup.innerHTML = `<div style="font-size:28px;font-weight:800">${km} km</div>`;
   popup.style.cssText = `
-    position: fixed;
-    left: 50%;
-    bottom: 120px;
-    transform: translateX(-50%) scale(.95);
-    background: linear-gradient(135deg, ${couleur}, #000);
-    color: #fff;
-    padding: 18px 30px;
-    border-radius: 22px;
-    box-shadow: 0 14px 35px rgba(0,0,0,.45);
-    opacity: 0;
-    transition: all .35s cubic-bezier(.2,.9,.3,1);
-    z-index: 9999;
-    text-align: center;
-    pointer-events: none;
+    position:fixed;
+    left:50%;
+    bottom:120px;
+    transform:translateX(-50%);
+    background:${couleur};
+    color:#fff;
+    padding:14px 26px;
+    border-radius:22px;
+    z-index:2000;
   `;
   document.body.appendChild(popup);
-
-  requestAnimationFrame(() => {
-    popup.style.opacity = "1";
-    popup.style.transform = "translateX(-50%) scale(1)";
-  });
-
-  return popup;
-}
-
-// =======================================================
-// SCORE ANIMÉ
-// =======================================================
-function animerScore(debut, fin) {
-  const duree = 350;
-  const start = performance.now();
-  function step(t) {
-    const p = Math.min((t - start) / duree, 1);
-    scoreEl.textContent = "⭐ " + Math.round(debut + (fin - debut) * p);
-    if (p < 1) requestAnimationFrame(step);
-  }
-  requestAnimationFrame(step);
 }
 
 // =======================================================
@@ -237,11 +196,8 @@ function animerScore(debut, fin) {
 // =======================================================
 function terminerJeu() {
   jeuTermine = true;
-  villeEl.textContent = "FIN DE PARTIE";
-  btnRejouer.style.display = "block";
+  finEl.style.display = "flex";
 }
-
-btnRejouer.onclick = () => location.reload();
 
 // =======================================================
 // DISTANCE HAVERSINE
